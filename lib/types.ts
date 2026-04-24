@@ -4,11 +4,12 @@ export const GENRE_OPTIONS = [
 ] as const
 
 export interface ProjectConcept {
-  theme: string        // 가치관/주제
-  ending: string       // 엔딩 방향
-  tone: string         // 분위기/톤
-  style: string        // 문체
-  writingGuide: string // 집필 지침
+  theme: string          // 가치관/주제
+  ending: string         // 엔딩 방향
+  tone: string           // 분위기/톤
+  style: string          // 문체
+  writingGuide: string   // 집필 지침
+  styleReference: string // 문체 레퍼런스 (실제 텍스트 예시)
 }
 
 export interface ProjectMeta {

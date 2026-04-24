@@ -51,6 +51,9 @@ export async function POST(req: NextRequest) {
           `분위기: ${concept.tone}`,
           `문체: ${concept.style}`,
           concept.writingGuide ? `집필 지침: ${concept.writingGuide}` : "",
+          concept.styleReference
+            ? `\n[문체 레퍼런스]\n아래 예시 텍스트의 문체, 리듬, 문장 길이, 어휘 선택, 서술 방식을 최대한 모방해 본문을 작성하세요.\n\n${concept.styleReference}\n\n위 예시처럼 써주세요.`
+            : "",
           "\n주어진 장면 설명을 바탕으로 생동감 있고 몰입감 높은 소설 본문을 800~1500자로 작성하세요.",
         ].filter(Boolean).join("\n"),
       },
