@@ -44,6 +44,7 @@ export default function PlotTab({ projectId, meta, world, characters, chapters, 
           genres: meta.genres,
           world,
           characters: characters.map((c) => ({ id: c.id, name: c.name, role: c.role, personality: c.personality })),
+          projectId,
           ...(hasExisting ? {
             existingChapters: sortedChapters.map((c) => ({ number: c.number, title: c.title, summary: c.summary })),
             insertAfter: effectiveInsertAfter,

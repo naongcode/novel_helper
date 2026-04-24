@@ -38,6 +38,7 @@ export default function WritingTab({ projectId, meta, world, characters, chapter
       genres: meta.genres,
       world,
       characters,
+      projectId,
     }
   }
 

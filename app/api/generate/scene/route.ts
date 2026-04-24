@@ -4,9 +4,14 @@ import { exec } from "child_process"
 import { promisify } from "util"
 import type { GenerateSceneRequest } from "@/lib/types"
 import { WORLD_SECTIONS } from "@/lib/types"
+import { appendUsage } from "@/lib/storage"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 const execAsync = promisify(exec)
+
+function cost(input: number, output: number) {
+  return input * 2.5e-6 + output * 1e-5
+}
 
 async function gitCommit(projectTitle: string, chapterNum: number, sceneOrder: number) {
   try {
@@ -19,7 +24,7 @@ async function gitCommit(projectTitle: string, chapterNum: number, sceneOrder: n
 
 export async function POST(req: NextRequest) {
   const body: GenerateSceneRequest = await req.json()
-  const { scene, chapter, otherChapterSummaries, concept, genres, world, characters } = body
+  const { scene, chapter, otherChapterSummaries, concept, genres, world, characters, projectId } = body
   const genreStr = genres?.length ? genres.join(", ") : "장르 미정"
 
   const worldText = WORLD_SECTIONS
@@ -40,6 +45,7 @@ export async function POST(req: NextRequest) {
   const stream = await openai.chat.completions.create({
     model: "gpt-4o",
     stream: true,
+    stream_options: { include_usage: true },
     messages: [
       {
         role: "system",
@@ -69,19 +75,33 @@ export async function POST(req: NextRequest) {
 
   const readable = new ReadableStream({
     async start(controller) {
+      let usageData: { prompt_tokens: number; completion_tokens: number } | null = null
       for await (const chunk of stream) {
         const text = chunk.choices[0]?.delta?.content ?? ""
         if (text) {
           fullContent += text
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: text })}\n\n`))
         }
+        if (chunk.usage) usageData = chunk.usage
       }
       controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`))
       controller.close()
 
-      // 스트리밍 완료 후 git 커밋 (비동기, 실패해도 무시)
       const projectTitle = body.genres?.join("") || "novel"
       gitCommit(projectTitle, chapter.number, scene.order).catch(() => {})
+
+      if (projectId && usageData) {
+        appendUsage(projectId, {
+          id: crypto.randomUUID(),
+          timestamp: new Date().toISOString(),
+          type: "scene",
+          label: `${chapter.number}챕터 ${scene.order}장면`,
+          model: "gpt-4o",
+          inputTokens: usageData.prompt_tokens,
+          outputTokens: usageData.completion_tokens,
+          totalCost: cost(usageData.prompt_tokens, usageData.completion_tokens),
+        })
+      }
     },
   })
 

@@ -57,6 +57,7 @@ export default function CharacterTab({ projectId, meta, world, characters, onUpd
           name: "", role: "", count: randomCount,
           concept: meta.concept, genres: meta.genres, world,
           existingCharacters: characters.map((c) => ({ id: c.id, name: c.name, role: c.role, personality: c.personality })),
+          projectId,
         }),
       })
       const generated = await res.json()
@@ -104,6 +105,7 @@ export default function CharacterTab({ projectId, meta, world, characters, onUpd
           genres: meta.genres,
           world,
           existingCharacters: characters.map((c) => ({ id: c.id, name: c.name, role: c.role, personality: c.personality })),
+          projectId,
         }),
       })
       const generated = await res.json()

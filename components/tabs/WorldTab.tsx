@@ -12,7 +12,7 @@ interface Props {
   onUpdate: (world: WorldSetting) => Promise<void>
 }
 
-export default function WorldTab({ meta, world, onUpdate }: Props) {
+export default function WorldTab({ projectId, meta, world, onUpdate }: Props) {
   const [values, setValues] = useState<WorldSetting>(world)
   const [seeds, setSeeds] = useState<Partial<Record<keyof WorldSetting, string>>>({})
   const [loading, setLoading] = useState<Partial<Record<keyof WorldSetting | "batch", boolean>>>({})
@@ -37,7 +37,7 @@ export default function WorldTab({ meta, world, onUpdate }: Props) {
     let generated = ""
     await readStream(
       "/api/generate/world",
-      { section: key, seed: seeds[key] ?? "", concept: meta.concept, genres: meta.genres, existingWorld: currentValues },
+      { section: key, seed: seeds[key] ?? "", concept: meta.concept, genres: meta.genres, existingWorld: currentValues, projectId },
       (chunk) => {
         generated += chunk
         setValues((prev) => ({ ...prev, [key]: generated }))

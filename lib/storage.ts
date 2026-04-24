@@ -1,6 +1,6 @@
 import fs from "fs"
 import path from "path"
-import type { ProjectMeta, WorldSetting, Character, Chapter } from "./types"
+import type { ProjectMeta, WorldSetting, Character, Chapter, UsageRecord } from "./types"
 import { EMPTY_WORLD } from "./types"
 
 const DATA_DIR = path.join(process.cwd(), "data")
@@ -44,7 +44,7 @@ export function createProject(id: string, title: string, genres: string[]): Proj
     id,
     title,
     genres,
-    concept: { theme: "", ending: "", tone: "", style: "", writingGuide: "" },
+    concept: { theme: "", ending: "", tone: "", style: "", writingGuide: "", styleReference: "" },
     createdAt: now,
     updatedAt: now,
   }
@@ -117,6 +117,18 @@ export function deleteChapter(id: string, chapterId: string) {
   const filePath = path.join(projectDir(id), "chapters", `${chapterId}.json`)
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
   touchUpdatedAt(id)
+}
+
+// ── usage ────────────────────────────────────────────────────
+
+export function getUsage(id: string): UsageRecord[] {
+  return readJson(path.join(projectDir(id), "usage.json"), [])
+}
+
+export function appendUsage(id: string, record: UsageRecord) {
+  const log = getUsage(id)
+  log.push(record)
+  writeJson(path.join(projectDir(id), "usage.json"), log)
 }
 
 // ── 내부 헬퍼 ────────────────────────────────────────────────

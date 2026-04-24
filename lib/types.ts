@@ -101,6 +101,7 @@ export interface Chapter {
 export interface GenerateConceptRequest {
   title: string
   genres: string[]
+  projectId?: string
 }
 
 export interface GenerateWorldRequest {
@@ -109,6 +110,7 @@ export interface GenerateWorldRequest {
   concept: ProjectConcept
   genres: string[]
   existingWorld: WorldSetting
+  projectId?: string
 }
 
 export interface GenerateCharacterRequest {
@@ -119,6 +121,7 @@ export interface GenerateCharacterRequest {
   genres: string[]
   world: WorldSetting
   existingCharacters: Pick<Character, "id" | "name" | "role" | "personality">[]
+  projectId?: string
 }
 
 export interface GeneratePlotRequest {
@@ -128,7 +131,8 @@ export interface GeneratePlotRequest {
   world: WorldSetting
   characters: Pick<Character, "id" | "name" | "role" | "personality">[]
   existingChapters?: { number: number; title: string; summary: string }[]
-  insertAfter?: number  // 0 = 맨 앞, N = N챕터 이후
+  insertAfter?: number
+  projectId?: string
 }
 
 export interface GenerateSceneRequest {
@@ -139,4 +143,19 @@ export interface GenerateSceneRequest {
   genres: string[]
   world: WorldSetting
   characters: Character[]
+  projectId?: string
+}
+
+// 사용량 기록
+export type GenerateType = "concept" | "world" | "character" | "plot" | "scene"
+
+export interface UsageRecord {
+  id: string
+  timestamp: string
+  type: GenerateType
+  label: string
+  model: string
+  inputTokens: number
+  outputTokens: number
+  totalCost: number  // USD
 }

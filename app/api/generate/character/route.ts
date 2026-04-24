@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
 import OpenAI from "openai"
 import type { GenerateCharacterRequest } from "@/lib/types"
+import { appendUsage } from "@/lib/storage"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
+function cost(input: number, output: number) {
+  return input * 2.5e-6 + output * 1e-5
+}
+
 export async function POST(req: NextRequest) {
   const body: GenerateCharacterRequest = await req.json()
-  const { name, role, concept, genres, world, existingCharacters } = body
+  const { name, role, concept, genres, world, existingCharacters, projectId } = body
   const genreStr = genres?.length ? genres.join(", ") : "장르 미정"
   const isRandom = !name && !role
   const count = Math.min(Math.max(Number(body.count ?? 1), 1), 10)
@@ -35,8 +40,24 @@ export async function POST(req: NextRequest) {
     response_format: { type: "json_object" },
   })
 
+  if (projectId && completion.usage) {
+    const { prompt_tokens, completion_tokens } = completion.usage
+    const label = isRandom
+      ? count > 1 ? `캐릭터 랜덤 ${count}명 생성` : "캐릭터 랜덤 생성"
+      : `캐릭터 - ${name}(${role})`
+    appendUsage(projectId, {
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      type: "character",
+      label,
+      model: "gpt-4o",
+      inputTokens: prompt_tokens,
+      outputTokens: completion_tokens,
+      totalCost: cost(prompt_tokens, completion_tokens),
+    })
+  }
+
   const parsed = JSON.parse(completion.choices[0].message.content ?? "{}")
-  // 배치 생성은 배열로, 단건은 객체로 반환
   const result = count > 1 ? (parsed.characters ?? []) : parsed
   return NextResponse.json(result)
 }

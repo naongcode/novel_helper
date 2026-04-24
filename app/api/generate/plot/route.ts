@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from "next/server"
 import OpenAI from "openai"
 import type { GeneratePlotRequest } from "@/lib/types"
 import { WORLD_SECTIONS } from "@/lib/types"
+import { appendUsage } from "@/lib/storage"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
+function cost(input: number, output: number) {
+  return input * 2.5e-6 + output * 1e-5
+}
+
 export async function POST(req: NextRequest) {
   const body: GeneratePlotRequest = await req.json()
-  const { chapterCount, concept, genres, world, characters, existingChapters, insertAfter } = body
+  const { chapterCount, concept, genres, world, characters, existingChapters, insertAfter, projectId } = body
   const genreStr = genres?.length ? genres.join(", ") : "장르 미정"
 
   const worldSummary = WORLD_SECTIONS
@@ -64,6 +69,20 @@ export async function POST(req: NextRequest) {
     ],
     response_format: { type: "json_object" },
   })
+
+  if (projectId && completion.usage) {
+    const { prompt_tokens, completion_tokens } = completion.usage
+    appendUsage(projectId, {
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      type: "plot",
+      label: isInsertion ? `줄거리 ${chapterCount}챕터 삽입` : `줄거리 ${chapterCount}챕터 생성`,
+      model: "gpt-4o",
+      inputTokens: prompt_tokens,
+      outputTokens: completion_tokens,
+      totalCost: cost(prompt_tokens, completion_tokens),
+    })
+  }
 
   const content = completion.choices[0].message.content ?? "{}"
   const parsed = JSON.parse(content)

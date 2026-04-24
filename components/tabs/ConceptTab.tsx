@@ -32,7 +32,7 @@ export default function ConceptTab({ projectId, meta, onUpdate }: Props) {
       const res = await fetch("/api/generate/concept", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: meta.title, genres: meta.genres }),
+        body: JSON.stringify({ title: meta.title, genres: meta.genres, projectId }),
       })
       const generated: ProjectConcept = await res.json()
       const merged = { ...generated, writingGuide: generated.writingGuide ?? "", styleReference: concept.styleReference ?? "" }

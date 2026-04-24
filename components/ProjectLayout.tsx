@@ -8,8 +8,9 @@ import CharacterTab from "./tabs/CharacterTab"
 import PlotTab from "./tabs/PlotTab"
 import WritingTab from "./tabs/WritingTab"
 import DownloadTab from "./tabs/DownloadTab"
+import UsageTab from "./tabs/UsageTab"
 
-const TABS = ["작품 설정", "세계관", "캐릭터", "줄거리/챕터", "본문 작성", "다운로드"] as const
+const TABS = ["작품 설정", "세계관", "캐릭터", "줄거리/챕터", "본문 작성", "다운로드", "토큰/비용"] as const
 type Tab = (typeof TABS)[number]
 
 interface ProjectData {
@@ -150,6 +151,9 @@ export default function ProjectLayout({ id }: { id: string }) {
         )}
         {activeTab === "다운로드" && (
           <DownloadTab meta={meta} chapters={chapters} />
+        )}
+        {activeTab === "토큰/비용" && (
+          <UsageTab projectId={id} />
         )}
       </main>
     </div>
